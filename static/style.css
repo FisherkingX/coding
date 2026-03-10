@@ -1,0 +1,29 @@
+* { box-sizing: border-box; }
+html, body { height: 100%; margin: 0; padding: 0; overflow: hidden; background: #0b0f19; color: white; }
+.chat-app { width: 100%; max-width: 450px; height: 100dvh; background: #161b22; display: flex; flex-direction: column; position: relative; margin: 0 auto; }
+.group-header { background: #1f2937; padding: 10px; border-bottom: 2px solid #38bdf8; text-align: center; flex-shrink: 0; }
+#room-display { color: #38bdf8; margin: 0; font-size: 1rem; text-transform: uppercase; }
+.video-grid { display: flex; gap: 5px; padding: 8px; background: #000; height: 100px; overflow-x: auto; flex-shrink: 0; align-items: center; }
+video { height: 80px; width: 110px; border-radius: 8px; border: 2px solid #475569; object-fit: cover; flex-shrink: 0; transition: 0.2s; }
+.speaking { border: 3px solid #22c55e !important; box-shadow: 0 0 15px #22c55e; }
+#chat-window { flex-grow: 1; background: #0d1117; overflow-y: auto; padding: 15px; display: flex; flex-direction: column; gap: 8px; }
+.input-area { background: #1f2937; padding: 10px; border-top: 1px solid #38bdf8; flex-shrink: 0; }
+.input-container { display: flex; flex-direction: column; gap: 8px; }
+input#user-msg { width: 100%; padding: 12px; border-radius: 12px; border: 1px solid #38bdf8; background: #0d1117; color: white; font-size: 16px; outline: none; }
+.button-row { display: flex; gap: 4px; width: 100%; }
+.btn { flex: 1; border: none; border-radius: 6px; background: #475569; color: white; padding: 12px 0; font-size: 0.8rem; font-weight: bold; cursor: pointer; position: relative; display: flex; align-items: center; justify-content: center; }
+.send { background: #22c55e; flex: 1.5; }
+.reject { background: #ef4444; }
+.off-status { background: #ef4444 !important; }
+.off-status::after { content: "✕"; position: absolute; color: white; font-size: 14px; font-weight: bold; }
+.active-mode { background: #fbbf24 !important; color: black !important; }
+
+/* MODAL DESIGN FIX */
+.modal-overlay { position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.9); z-index: 9999; display: flex; justify-content: center; align-items: center; }
+.modal-content { background: #1f2937; padding: 25px; border-radius: 20px; border: 3px solid #38bdf8; text-align: center; width: 85%; }
+.modal-buttons { display: flex; gap: 10px; margin-top: 20px; width: 100%; }
+.modal-buttons .btn { flex: 1; padding: 15px; font-size: 1rem; border-radius: 10px; }
+
+.msg-right { align-self: flex-end; background: #2563eb; padding: 8px 12px; border-radius: 12px 12px 0 12px; max-width: 85%; }
+.msg-left { align-self: flex-start; background: #334155; padding: 8px 12px; border-radius: 12px 12px 12px 0; max-width: 85%; }
+.sender-tag { color: #38bdf8; font-size: 0.7rem; font-weight: bold; display: block; margin-bottom: 2px; }
