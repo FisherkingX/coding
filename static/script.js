@@ -1,4 +1,5 @@
-let socket, peer, roomID, myName, myId, currentAction;
+let socket, peer, roomID, myName, myId;
+let localStream;
 
 async function startApp() {
     roomID = document.getElementById('roomInput').value;
@@ -6,23 +7,19 @@ async function startApp() {
     if (!roomID || !myName) return alert("Fill fields");
     document.getElementById('setupModal').style.display = 'none';
 
+    // 1. Initialize camera IMMEDIATELY on button click
+    try {
+        localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
+        document.getElementById('local-video').srcObject = localStream;
+    } catch (e) { alert("Camera/Mic access denied!"); }
+
+    // 2. Initialize socket
     socket = io();
     myId = Math.floor(100000 + Math.random() * 900000);
     peer = new Peer('user-' + myId);
     
     document.getElementById('room-display').innerText = "ROOM: " + roomID;
     socket.emit('join', { room: roomID, name: myName, id: myId });
-}
-
-function openTargetModal(action) {
-    currentAction = action;
-    document.getElementById('target-modal').style.display = 'flex';
-}
-
-function submitTarget() {
-    const target = document.getElementById('targetInput').value;
-    socket.emit('request_action', { type: currentAction, fromName: myName, fromId: myId, toId: target, room: roomID });
-    document.getElementById('target-modal').style.display = 'none';
 }
 
 function sendMessage() {
