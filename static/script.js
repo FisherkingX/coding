@@ -1,32 +1,28 @@
-let localStream;
+let localStream, privateMode = false;
 
 async function startApp() {
-    const roomID = document.getElementById('roomInput').value;
-    const myName = document.getElementById('nameInput').value;
-    if (!roomID || !myName) return alert("Fill all fields");
-
-    // 1. Hide the modal immediately
     document.getElementById('setupModal').style.display = 'none';
-
-    // 2. Request Camera/Mic permission on user action
     try {
         localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
         document.getElementById('local-video').srcObject = localStream;
-    } catch (e) {
-        alert("Camera/Mic access denied! Please allow permissions in your browser settings.");
+    } catch (e) { alert("Camera/Mic access denied!"); }
+}
+
+function togglePrivate() {
+    privateMode = !privateMode;
+    // Visually toggle button
+    document.getElementById('private-btn').style.background = privateMode ? '#fca5a5' : '#21262d';
+    // This logic connects to your existing messaging function
+    if(privateMode) {
+        // Here you would prompt for Target ID using a custom modal div
+        // to avoid the "white box" native prompt.
     }
 }
 
 function toggleMic() {
-    if (localStream) {
-        const audio = localStream.getAudioTracks()[0];
-        audio.enabled = !audio.enabled;
-    }
+    if(localStream) localStream.getAudioTracks()[0].enabled = !localStream.getAudioTracks()[0].enabled;
 }
 
 function toggleCam() {
-    if (localStream) {
-        const video = localStream.getVideoTracks()[0];
-        video.enabled = !video.enabled;
-    }
+    if(localStream) localStream.getVideoTracks()[0].enabled = !localStream.getVideoTracks()[0].enabled;
 }
