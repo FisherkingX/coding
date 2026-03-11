@@ -5,12 +5,14 @@ async function startApp() {
     roomID = document.getElementById('roomInput').value;
     myName = document.getElementById('nameInput').value;
     if (!roomID || !myName) return alert("Fill fields");
+    
     document.getElementById('setupModal').style.display = 'none';
+    document.getElementById('room-display').innerText = "ROOM: " + roomID;
 
     try {
         localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
         document.getElementById('local-video').srcObject = localStream;
-    } catch (e) { alert("Camera/Mic denied"); }
+    } catch (e) { alert("Camera/Mic access denied!"); }
 
     socket = io();
     myId = Math.floor(100000 + Math.random() * 900000);
@@ -28,7 +30,7 @@ function sendMessage() {
 
 function togglePrivate() {
     privateTargetId = privateTargetId ? null : prompt("Enter Target ID:");
-    document.getElementById('private-btn').style.background = privateTargetId ? '#fca5a5' : '';
+    document.getElementById('private-btn').style.background = privateTargetId ? '#fca5a5' : '#24283b';
 }
 
 function toggleMic() {
