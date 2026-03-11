@@ -2,8 +2,8 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <title>Document</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Chat</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
@@ -11,6 +11,7 @@
     <div class="chat-app">
         <div class="group-header">
             <h2 id="room-display">ROOM: ...</h2>
+            <div id="user-display"></div>
         </div>
 
         <div id="setupModal" class="modal-overlay" style="display:flex;">
@@ -18,16 +19,27 @@
                 <h2>JOIN ROOM</h2>
                 <input type="text" id="roomInput" placeholder="Room Name">
                 <input type="text" id="nameInput" placeholder="Your Name">
-                <button class="btn send" onclick="startApp()">CONNECT & ALLOW CAMERA</button>
+                <button class="btn send" onclick="startApp()">CONNECT</button>
             </div>
         </div>
 
-        <video id="local-video" autoplay muted playsinline></video>
-        <div id="chat-window"></div>
-        <div class="input-area">
-            <input type="text" id="user-msg">
-            <button class="btn send" onclick="sendMessage()">SEND</button>
+        <div id="video-grid" class="video-grid">
+            <video id="local-video" autoplay muted playsinline></video>
         </div>
+
+        <div id="chat-window"></div>
+
+        <div class="input-area">
+            <input type="text" id="user-msg" placeholder="Message...">
+            <div class="button-row">
+                <button class="btn" onclick="sendMessage()">SEND</button>
+                <button class="btn" onclick="startCall()">📞</button>
+                <button class="btn" onclick="toggleMic()">🎙️</button>
+                <button class="btn" onclick="toggleCam()">📷</button>
+                <button class="btn" onclick="document.getElementById('file-input').click()">📁</button>
+            </div>
+        </div>
+        <input type="file" id="file-input" style="display:none;" onchange="sendFile()">
     </div>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
