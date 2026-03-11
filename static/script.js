@@ -1,19 +1,16 @@
 let socket, peer, roomID, myName, myId, localStream;
+let privateTargetId = null;
 
 async function startApp() {
     roomID = document.getElementById('roomInput').value;
     myName = document.getElementById('nameInput').value;
-    if (!roomID || !myName) return alert("Fill all fields");
-    
+    if (!roomID || !myName) return alert("Fill fields");
     document.getElementById('setupModal').style.display = 'none';
-    document.getElementById('room-display').innerText = "ROOM: " + roomID;
-    document.getElementById('user-display').innerText = "User: " + myName;
 
-    // Initialize Camera/Mic
     try {
         localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
         document.getElementById('local-video').srcObject = localStream;
-    } catch (e) { alert("Camera/Mic access denied!"); }
+    } catch (e) { alert("Camera/Mic denied"); }
 
     socket = io();
     myId = Math.floor(100000 + Math.random() * 900000);
@@ -22,26 +19,37 @@ async function startApp() {
 }
 
 function sendMessage() {
-    const msg = document.getElementById('user-msg').value;
-    socket.emit('message', { name: myName, text: msg, room: roomID, senderId: myId });
-    document.getElementById('user-msg').value = "";
+    const input = document.getElementById('user-msg');
+    const data = { name: myName, text: input.value, room: roomID, senderId: myId };
+    if (privateTargetId) data.targetId = privateTargetId;
+    socket.emit('message', data);
+    input.value = "";
+}
+
+function togglePrivate() {
+    privateTargetId = privateTargetId ? null : prompt("Enter Target ID:");
+    document.getElementById('private-btn').style.background = privateTargetId ? '#fca5a5' : '';
 }
 
 function toggleMic() {
-    const track = localStream.getAudioTracks()[0];
-    track.enabled = !track.enabled;
+    const t = localStream.getAudioTracks()[0];
+    t.enabled = !t.enabled;
+    document.getElementById('mic-btn').style.opacity = t.enabled ? '1' : '0.5';
 }
 
 function toggleCam() {
-    const track = localStream.getVideoTracks()[0];
-    track.enabled = !track.enabled;
+    const t = localStream.getVideoTracks()[0];
+    t.enabled = !t.enabled;
+    document.getElementById('cam-btn').style.opacity = t.enabled ? '1' : '0.5';
 }
 
 function sendFile() {
     const file = document.getElementById('file-input').files[0];
     const reader = new FileReader();
     reader.onload = () => {
-        socket.emit('message', { name: myName, file: reader.result, fileName: file.name, room: roomID });
+        const data = { name: myName, file: reader.result, room: roomID, senderId: myId };
+        if (privateTargetId) data.targetId = privateTargetId;
+        socket.emit('message', data);
     };
     reader.readAsDataURL(file);
 }
