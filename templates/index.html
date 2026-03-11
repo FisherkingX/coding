@@ -17,6 +17,17 @@
             <div class="member-stats">ONLINE: <span id="member-count">0</span></div>
         </div>
 
+        <div id="setupModal" class="modal-overlay" style="display:flex;">
+            <div class="modal-content">
+                <h2 style="color: #38bdf8; margin: 0 0 15px;">JOIN ROOM</h2>
+                <input type="text" id="roomInput" placeholder="Room Name" style="width: 100%; padding: 12px; margin-bottom: 10px; border-radius: 8px; border: 1px solid #38bdf8; background: #0d1117; color: white;">
+                <input type="text" id="nameInput" placeholder="Your Name" style="width: 100%; padding: 12px; border-radius: 8px; border: 1px solid #38bdf8; background: #0d1117; color: white;">
+                <div class="modal-buttons">
+                    <button class="btn send" onclick="startApp()" style="width: 100%; padding: 15px; font-weight: bold; border-radius: 8px;">CONNECT</button>
+                </div>
+            </div>
+        </div>
+
         <div id="video-grid" class="video-grid">
             <div id="local-container" style="position:relative; flex-shrink:0;">
                 <video id="local-video" autoplay muted playsinline></video>
