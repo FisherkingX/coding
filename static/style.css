@@ -75,3 +75,42 @@ margin:5px;
 border-radius:8px;
 align-self:flex-end;
 }
+
+.secure-session-box {
+  background-color: #1a1e23;
+  padding: 30px;
+  border-radius: 12px;
+  max-width: 350px;
+  margin: 20px auto;
+  text-align: center;
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.3);
+}
+
+.secure-session-box h2 {
+  color: #ffffff;
+  font-size: 1.2rem;
+  margin-bottom: 20px;
+}
+
+.secure-session-box input {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-bottom: 15px;
+  background-color: #0d1014;
+  border: 1px solid #333;
+  border-radius: 4px;
+  color: #fff;
+  box-sizing: border-box;
+}
+
+.secure-session-box button {
+  width: 100%;
+  padding: 12px;
+  background-color: #2e7d32;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  font-weight: bold;
+  cursor: pointer;
+}
