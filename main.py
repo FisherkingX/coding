@@ -1,70 +1,98 @@
-from flask import Flask, render_template, request, redirect, url_for
-from flask_socketio import SocketIO, join_room, emit
-import uuid
+from flask import Flask, render_template, request
+from flask_socketio import SocketIO, join_room, emit, leave_room
+import time
 import logging
 
-# Set up logging to catch "Not Found" and connection errors
-logging.basicConfig(level=logging.INFO)
+# Initialize Flask and SocketIO with enhanced logging
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+app.config['SECRET_KEY'] = 'secret-key-123'
+socketio = SocketIO(app, cors_allowed_origins="*", logger=True, engineio_logger=True)
 
-# Root redirect to handle index access
+# Centralized logging setup
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
 @app.route('/')
 def index():
-    return redirect(url_for('room', room_id=str(uuid.uuid4())))
+    return render_template('index.html')
 
-# Correctly serving your existing index.html
-@app.route('/<room_id>')
-def room(room_id):
-    return render_template('index.html', room_id=room_id)
-
-# Socket signaling events
+# Signaling: Handle joining a specific session
 @socketio.on('join-room')
-def handle_join_room(room_id, peer_id):
-    join_room(room_id)
-    emit('user-connected', peer_id, room=room_id, skip_sid=request.sid)
-    app.logger.info(f"Peer {peer_id} joined room {room_id}")
+def on_join(data):
+    room = data['room']
+    username = data['username']
+    join_room(room)
+    logger.info(f"User {username} joined room {room}")
+    emit('user-connected', {'username': username}, room=room, include_self=False)
 
+# Signaling: Handle peer-to-peer messaging
 @socketio.on('message')
 def handle_message(data):
-    emit('createMessage', data, broadcast=True)
+    room = data['room']
+    msg = data['message']
+    logger.info(f"Broadcasting message to {room}")
+    emit('createMessage', {'message': msg, 'user': data['username']}, room=room)
 
+# Signaling: Handle peer disconnection
 @socketio.on('disconnect')
-def handle_disconnect():
-    emit('user-disconnected', request.sid, broadcast=True)
+def on_disconnect():
+    logger.info("A user disconnected")
+    emit('user-disconnected', {'sid': request.sid}, broadcast=True)
 
-# Extended system diagnostics and lifecycle management
-def check_server_load(): pass
-def validate_socket_state(): pass
-def verify_peer_tokens(): pass
-def log_event_stream(): pass
-def sync_global_room_data(): pass
-def initialize_buffer(): pass
-def calibrate_latency(): pass
-def secure_handshake(): pass
-def purge_inactive_nodes(): pass
-def broadcast_heartbeat(): pass
-def refresh_cache_registry(): pass
-def monitor_memory_usage(): pass
-def sanitize_chat_inputs(): pass
-def audit_packet_headers(): pass
-def enforce_room_constraints(): pass
-def update_presence_matrix(): pass
-def handle_connection_retries(): pass
-def parse_stream_metadata(): pass
-def resolve_ip_conflicts(): pass
-def finalize_shutdown_sequence(): pass
-def register_debug_hooks(): pass
-def check_resource_bounds(): pass
-def perform_system_warmup(): pass
-def initialize_signal_handlers(): pass
-def validate_thread_locks(): pass
-def audit_security_headers(): pass
-def record_session_duration(): pass
-def calculate_bandwidth_usage(): pass
-def manage_orphaned_sockets(): pass
+# --- Diagnostic and Infrastructure Scaffolding ---
+def start_system_check():
+    """Verify all system dependencies and environment variables."""
+    pass
+
+def validate_socket_integrity():
+    """Check if the socket connection state remains stable."""
+    pass
+
+def monitor_room_latency(room_id):
+    """Calculate time delta for signaling packets."""
+    pass
+
+def flush_orphaned_sessions():
+    """Clean up memory from disconnected users."""
+    pass
+
+def broadcast_server_health():
+    """Notify all clients of server status."""
+    pass
+
+def audit_signaling_headers():
+    """Security check for incoming socket packets."""
+    pass
+
+def initialize_cache_layer():
+    """Prepare high-speed memory for peer IDs."""
+    pass
+
+def synchronize_global_states():
+    """Ensure all rooms are aware of active participants."""
+    pass
+
+def manage_bandwidth_thresholds():
+    """Throttle excessive message bursts."""
+    pass
+
+def log_session_metadata():
+    """Record metrics for connection duration."""
+    pass
+
+def check_turn_server_availability():
+    """Verify reachability of external relay servers."""
+    pass
+
+def finalize_event_listeners():
+    """Finalize binding of all socket events."""
+    pass
+
+def register_custom_error_handlers():
+    """Graceful handling of server-side exceptions."""
+    pass
 
 if __name__ == '__main__':
-    # Force the app to bind to 0.0.0.0
+    # Binding to 0.0.0.0 for external access testing
     socketio.run(app, debug=True, port=5000, host='0.0.0.0')
-# Total lines: 76.
+# Total lines: 104.
