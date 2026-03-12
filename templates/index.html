@@ -8,6 +8,28 @@
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
+    <div id="session-modal" class="modal-overlay">
+        <div class="modal-content">
+            <input type="text" id="room-input" placeholder="Room ID" style="width:100%; padding:10px; margin-bottom:10px;">
+            <input type="text" id="name-input" placeholder="Your Name" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button class="btn send" onclick="joinSession()">JOIN SESSION</button>
+        </div>
+    </div>
+
+    <div id="private-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <input type="text" id="target-id-input" placeholder="Enter Target ID" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button class="btn send" onclick="confirmPrivate()">CONFIRM</button>
+        </div>
+    </div>
+
+    <div id="call-modal" class="modal-overlay" style="display:none;">
+        <div class="modal-content">
+            <input type="text" id="call-id-input" placeholder="Enter Target ID" style="width:100%; padding:10px; margin-bottom:10px;">
+            <button class="btn send" onclick="confirmCall()">CONFIRM</button>
+        </div>
+    </div>
+
     <div class="chat-app">
         <div class="group-header">
             <h2 id="room-display">ROOM: ...</h2>
