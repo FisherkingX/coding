@@ -1,0 +1,12 @@
+{
+  "name": "My App",
+  "short_name": "App",
+  "icons": [
+    {
+      "src": "/icon.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ],
+  "display": "standalone"
+}
