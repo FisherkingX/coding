@@ -2,52 +2,59 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Pro Chat - Advanced Secure Messaging</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0">
+    <title>Pro Chat Application</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    <meta name="description" content="Secure WebRTC Chat Application">
 </head>
 <body>
-    <div class="chat-app">
-        <header class="group-header">
-            <h2 id="room-display">ROOM: ...</h2>
-            <div class="user-info">
-                <span id="display-name"></span> | <span id="display-id" style="color:#38bdf8;"></span>
+    <div class="chat-app-container">
+        <header id="app-header" class="group-header">
+            <h2 id="room-display">ROOM: --</h2>
+            <div class="user-details">
+                <span id="display-name">Loading...</span> | 
+                <span id="display-id" style="color:#38bdf8;">ID: --</span>
             </div>
-            <div class="member-stats">ONLINE: <span id="member-count">0</span></div>
+            <div class="status-indicator">
+                ONLINE: <span id="member-count">0</span>
+            </div>
         </header>
 
-        <section id="video-grid" class="video-grid">
-            <div id="local-container">
+        <section id="video-grid" class="video-grid-container">
+            <div id="local-container" class="video-box">
                 <video id="local-video" autoplay muted playsinline></video>
-                <button id="hangup-btn" class="btn reject" onclick="endCall()">HANG UP</button>
+                <button id="hangup-btn" class="btn-hangup" onclick="endCall()">HANG UP</button>
             </div>
         </section>
 
-        <main id="chat-window"></main>
+        <main id="chat-window" class="chat-content-area"></main>
 
         <div id="request-modal" class="modal-overlay">
             <div class="modal-content">
                 <p id="modal-text"></p>
-                <button id="accept-btn">ACCEPT</button>
-                <button id="reject-btn">REJECT</button>
+                <div class="modal-actions">
+                    <button class="btn-action accept" id="accept-btn">ACCEPT</button>
+                    <button class="btn-action reject" id="reject-btn">REJECT</button>
+                </div>
             </div>
         </div>
 
-        <footer class="input-area">
-            <input type="text" id="user-msg" placeholder="Message...">
-            <div class="button-row">
-                <button class="btn" onclick="sendMessage()">SEND</button>
-                <button class="btn" id="private-btn" onclick="startPrivateRequest()">🔒</button>
-                <button class="btn" id="mic-btn" onclick="toggleMic()">🎙️</button>
-                <button class="btn" id="cam-btn" onclick="toggleCam()">📷</button>
-                <button class="btn" onclick="document.getElementById('file-input').click()">📁</button>
-                <button class="btn" onclick="startCallRequest()">📞</button>
-                <button class="btn reject" onclick="location.reload()">EXIT</button>
+        <footer class="input-area-fixed">
+            <div class="input-box-row">
+                <input type="text" id="user-msg" placeholder="Type a secure message...">
+                <button class="btn-send" onclick="sendMessage()">SEND</button>
+            </div>
+            <div class="controls-row">
+                <button class="btn-ctrl" id="private-btn" onclick="startPrivateRequest()">🔒</button>
+                <button class="btn-ctrl" id="mic-btn" onclick="toggleMic()">🎙️</button>
+                <button class="btn-ctrl" id="cam-btn" onclick="toggleCam()">📷</button>
+                <button class="btn-ctrl" onclick="document.getElementById('file-input').click()">📁</button>
+                <button class="btn-ctrl" id="call-btn" onclick="startCallRequest()">📞</button>
+                <button class="btn-ctrl reject" onclick="location.reload()">EXIT</button>
             </div>
         </footer>
     </div>
+    
     <input type="file" id="file-input" style="display:none;" onchange="sendFile()">
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
