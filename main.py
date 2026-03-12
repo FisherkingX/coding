@@ -37,6 +37,13 @@ def handle_request(data):
 @socketio.on('respond_action')
 def handle_response(data):
     emit('action_response', data, room=data['room'], include_self=False)
+from flask import send_from_directory
+
+@app.route('/icon.png') 
+def serve_icon():
+    return
+send_from_directory('static','icon.png')
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+
