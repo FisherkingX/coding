@@ -8,28 +8,6 @@
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
-    <div id="session-modal" class="modal-overlay">
-        <div class="modal-content">
-            <input type="text" id="room-input" placeholder="Room ID" style="width:100%; padding:10px; margin-bottom:10px;">
-            <input type="text" id="name-input" placeholder="Your Name" style="width:100%; padding:10px; margin-bottom:10px;">
-            <button class="btn send" onclick="joinSession()">JOIN SESSION</button>
-        </div>
-    </div>
-
-    <div id="private-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <input type="text" id="target-id-input" placeholder="Enter Target ID" style="width:100%; padding:10px; margin-bottom:10px;">
-            <button class="btn send" onclick="confirmPrivate()">CONFIRM</button>
-        </div>
-    </div>
-
-    <div id="call-modal" class="modal-overlay" style="display:none;">
-        <div class="modal-content">
-            <input type="text" id="call-id-input" placeholder="Enter Target ID" style="width:100%; padding:10px; margin-bottom:10px;">
-            <button class="btn send" onclick="confirmCall()">CONFIRM</button>
-        </div>
-    </div>
-
     <div class="chat-app">
         <div class="group-header">
             <h2 id="room-display">ROOM: ...</h2>
@@ -47,6 +25,37 @@
         </div>
 
         <div id="chat-window"></div>
+
+        <div id="session-modal" class="modal-overlay">
+            <div class="modal-content" style="max-width: 300px;">
+                <h2 style="margin-top:0; color:rgb(255, 255, 255);">SECURE SESSION</h2>
+                <input type="text" id="room-input" placeholder="Room ID" style="width:100%; padding:10px; margin-bottom:10px; background:#0d1117; border:1px solid #38bdf8; color:white; border-radius:5px;">
+                <input type="text" id="name-input" placeholder="Username" style="width:100%; padding:10px; margin-bottom:20px; background:#0d1117; border:1px solid #38bdf8; color:white; border-radius:5px;">
+                <button class="btn send" onclick="joinSession()">JOIN SESSION</button>
+            </div>
+        </div>
+
+        <div id="private-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-content" style="max-width: 300px;">
+                <h2 style="margin-top:0; color:white;">PRIVATE CHAT</h2>
+                <input type="text" id="target-id-input" placeholder="Enter Target ID" style="width:100%; padding:10px; margin-bottom:20px; background:#0d1117; border:1px solid #38bdf8; color:white; border-radius:5px;">
+                <div class="modal-buttons">
+                    <button class="btn send" onclick="confirmPrivate()">START</button>
+                    <button class="btn reject" onclick="document.getElementById('private-modal').style.display='none'">CANCEL</button>
+                </div>
+            </div>
+        </div>
+
+        <div id="call-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-content" style="max-width: 300px;">
+                <h2 style="margin-top:0; color:white;">START CALL</h2>
+                <input type="text" id="call-id-input" placeholder="Enter Target ID" style="width:100%; padding:10px; margin-bottom:20px; background:#0d1117; border:1px solid #38bdf8; color:white; border-radius:5px;">
+                <div class="modal-buttons">
+                    <button class="btn send" onclick="confirmCall()">CALL</button>
+                    <button class="btn reject" onclick="document.getElementById('call-modal').style.display='none'">CANCEL</button>
+                </div>
+            </div>
+        </div>
 
         <div id="request-modal" class="modal-overlay" style="display:none;">
             <div class="modal-content">
@@ -73,9 +82,7 @@
             </div>
         </div>
     </div>
-
     <input type="file" id="file-input" style="display:none;" onchange="sendFile()">
-
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
