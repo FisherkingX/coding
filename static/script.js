@@ -1,16 +1,24 @@
 const socket = io();
-const roomID = prompt("Room Name:");
-const myName = prompt("Your Name:");
+let roomID, myName; // Global variables for session
 const myId = Math.floor(100000 + Math.random() * 900000);
 const peer = new Peer('user-' + myId);
 
 let localStream, privateTargetId = null;
 let activeCalls = {};
 
-document.getElementById('room-display').innerText = "ROOM: " + roomID;
-document.getElementById('display-name').innerText = myName;
-document.getElementById('display-id').innerText = "ID: " + myId;
+// --- NEW SESSION LOGIC ---
+function joinSession() {
+    roomID = document.getElementById('room-input').value;
+    myName = document.getElementById('name-input').value;
+    if(!roomID || !myName) return alert("Please fill both fields");
+    document.getElementById('session-modal').style.display = 'none';
+    document.getElementById('room-display').innerText = "ROOM: " + roomID;
+    document.getElementById('display-name').innerText = myName;
+    document.getElementById('display-id').innerText = "ID: " + myId;
+    socket.emit('join', { room: roomID, name: myName, id: myId });
+}
 
+// --- ORIGINAL FUNCTIONS ---
 document.getElementById('user-msg').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
@@ -40,12 +48,6 @@ function monitorAudio(stream, elementId) {
     }
     check();
 }
-
-socket.emit('join', { room: roomID, name: myName, id: myId });
-
-socket.on('update_room_count', (count) => {
-    document.getElementById('member-count').innerText = count;
-});
 
 function startCallRequest() {
     const target = prompt("Target ID:");
@@ -149,7 +151,6 @@ function sendMessage() {
 }
 
 socket.on('render_msg', (d) => {
-    // FIXED PRIVATE FILTER: If private, ONLY sender and target can see
     if (d.targetId && d.targetId != myId && d.senderId != myId) return;
     const div = document.createElement('div');
     div.className = d.senderId == myId ? 'msg-right' : 'msg-left';
@@ -175,3 +176,7 @@ function toggleCam() {
     const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled;
     document.getElementById('cam-btn').classList.toggle('off-status', !t.enabled);
 }
+
+socket.on('update_room_count', (count) => {
+    document.getElementById('member-count').innerText = count;
+});
