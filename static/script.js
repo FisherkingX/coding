@@ -35,6 +35,19 @@ function confirmPrivate() {
     }
 }
 
+function startCallRequest() {
+    document.getElementById('call-modal').style.display = 'flex';
+}
+
+function confirmCall() {
+    const target = document.getElementById('call-id-input').value;
+    if(target) {
+        socket.emit('request_action', { type: 'call', fromName: myName, fromId: myId, toId: target, room: roomID });
+        document.getElementById('call-modal').style.display = 'none';
+        document.getElementById('call-id-input').value = "";
+    }
+}
+
 async function init() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
@@ -59,11 +72,6 @@ function monitorAudio(stream, elementId) {
         requestAnimationFrame(check);
     }
     check();
-}
-
-function startCallRequest() {
-    const target = prompt("Target ID:");
-    if(target) socket.emit('request_action', { type: 'call', fromName: myName, fromId: myId, toId: target, room: roomID });
 }
 
 function sendFile() {
