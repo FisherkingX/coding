@@ -1,36 +1,35 @@
-let localStream;
-const chat = document.getElementById('chat-window');
+let localStream, isMic = true, isCam = false;
+const state = { room: "", online: 0 };
 
 async function startApp() {
-    const room = document.getElementById('roomInput').value;
-    const name = document.getElementById('nameInput').value;
-    if (!room || !name) return;
+    state.room = document.getElementById('roomInput').value;
+    state.online = 1; // Simulate user joining
+    document.getElementById('room-name').innerText = `Room: ${state.room}`;
+    document.getElementById('online-count').innerText = `Online: ${state.online}`;
     document.getElementById('setupModal').style.display = 'none';
-    try {
-        localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
-        document.getElementById('local-video').srcObject = localStream;
-    } catch (e) { alert("Enable Cam/Mic permissions!"); }
-}
-
-function sendMessage() {
-    const input = document.getElementById('msgInput');
-    if (!input.value.trim()) return;
-    const div = document.createElement('div');
-    div.className = 'msg';
-    div.innerText = input.value;
-    chat.appendChild(div);
-    input.value = "";
-    chat.scrollTop = chat.scrollHeight;
-}
-
-function toggleMic() {
-    const t = localStream.getAudioTracks()[0];
-    t.enabled = !t.enabled;
-    document.getElementById('mic-btn').classList.toggle('active', !t.enabled);
 }
 
 function toggleCam() {
-    const t = localStream.getVideoTracks()[0];
-    t.enabled = !t.enabled;
-    document.getElementById('cam-btn').classList.toggle('active', !t.enabled);
+    const video = document.getElementById('local-video');
+    isCam = !isCam;
+    if (isCam) {
+        navigator.mediaDevices.getUserMedia({video: true}).then(s => {
+            localStream = s;
+            video.srcObject = s;
+            video.style.display = 'block';
+            document.getElementById('cam-btn').classList.remove('active');
+        });
+    } else {
+        video.style.display = 'none';
+        document.getElementById('cam-btn').classList.add('active');
+    }
+}
+
+function toggleMic() {
+    isMic = !isMic;
+    document.getElementById('mic-btn').classList.toggle('active', !isMic);
+}
+
+function togglePrivate() {
+    document.getElementById('priv-btn').classList.toggle('active');
 }
