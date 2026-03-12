@@ -1,12 +1,10 @@
 const socket = io();
-let roomID, myName; // Global variables for session
 const myId = Math.floor(100000 + Math.random() * 900000);
 const peer = new Peer('user-' + myId);
-
 let localStream, privateTargetId = null;
 let activeCalls = {};
+let roomID, myName;
 
-// --- NEW SESSION LOGIC ---
 function joinSession() {
     roomID = document.getElementById('room-input').value;
     myName = document.getElementById('name-input').value;
@@ -18,10 +16,24 @@ function joinSession() {
     socket.emit('join', { room: roomID, name: myName, id: myId });
 }
 
-// --- ORIGINAL FUNCTIONS ---
-document.getElementById('user-msg').addEventListener('keypress', (e) => {
-    if (e.key === 'Enter') sendMessage();
-});
+function startPrivateRequest() {
+    if(privateTargetId) {
+        privateTargetId = null;
+        document.getElementById('private-btn').classList.remove('active-mode');
+        alert("Private Mode Off");
+        return;
+    }
+    document.getElementById('private-modal').style.display = 'flex';
+}
+
+function confirmPrivate() {
+    const target = document.getElementById('target-id-input').value;
+    if(target) {
+        socket.emit('request_action', { type: 'private', fromName: myName, fromId: myId, toId: target, room: roomID });
+        document.getElementById('private-modal').style.display = 'none';
+        document.getElementById('target-id-input').value = "";
+    }
+}
 
 async function init() {
     try {
@@ -52,17 +64,6 @@ function monitorAudio(stream, elementId) {
 function startCallRequest() {
     const target = prompt("Target ID:");
     if(target) socket.emit('request_action', { type: 'call', fromName: myName, fromId: myId, toId: target, room: roomID });
-}
-
-function startPrivateRequest() {
-    if(privateTargetId) {
-        privateTargetId = null;
-        document.getElementById('private-btn').classList.remove('active-mode');
-        alert("Private Mode Off");
-        return;
-    }
-    const target = prompt("Target ID:");
-    if(target) socket.emit('request_action', { type: 'private', fromName: myName, fromId: myId, toId: target, room: roomID });
 }
 
 function sendFile() {
@@ -176,6 +177,10 @@ function toggleCam() {
     const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled;
     document.getElementById('cam-btn').classList.toggle('off-status', !t.enabled);
 }
+
+document.getElementById('user-msg').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
+});
 
 socket.on('update_room_count', (count) => {
     document.getElementById('member-count').innerText = count;
