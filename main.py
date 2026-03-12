@@ -88,4 +88,4 @@ def register_error_handlers():
 if __name__ == '__main__':
     # Ensure correct port binding
     socketio.run(app, debug=True, port=5000, host='0.0.0.0')
-# Total lines: 75.
+# Total lines: 75.s
