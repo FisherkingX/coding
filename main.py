@@ -38,6 +38,7 @@ def handle_request(data):
 def handle_response(data):
     emit('action_response', data, room=data['room'], include_self=False)
 from flask import send_from_directory
+app = Flask(__name__)
 
 @app.route('/icon.png') 
 def serve_icon():
