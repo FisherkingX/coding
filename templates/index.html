@@ -3,57 +3,66 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>Pro Chat Terminal | Secure Node Interface</title>
+    <title>Pro Chat Terminal - Secure Node</title>
     <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
     <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
-    <meta name="description" content="Secure, Peer-to-Peer Chat Application for Node-based WebRTC Environments">
-    <meta name="author" content="System Architect">
+    <meta name="description" content="Advanced WebRTC Secure Chat Interface">
 </head>
 <body>
-    <div class="chat-app-wrapper" role="application">
+
+    <div id="login-modal" style="position:fixed; top:0; left:0; width:100%; height:100%; background:#0d1117; display:flex; justify-content:center; align-items:center; z-index:9999;">
+        <div style="background:#161b22; padding:30px; border-radius:20px; text-align:center; border:2px solid #30363d; width:85%; max-width:400px;">
+            <h2 style="color:white; margin-bottom:20px;">SECURE SESSION</h2>
+            <input type="text" id="input-room" placeholder="Room ID" style="width:100%; padding:12px; margin-bottom:15px; border-radius:10px; border:none; background:#0d1117; color:white;">
+            <input type="text" id="input-name" placeholder="Username" style="width:100%; padding:12px; margin-bottom:20px; border-radius:10px; border:none; background:#0d1117; color:white;">
+            <button id="join-btn" style="width:100%; padding:15px; background:#238636; color:white; border:none; border-radius:10px; font-weight:bold; cursor:pointer;">JOIN SESSION</button>
+        </div>
+    </div>
+
+    <div class="chat-app" role="application">
         
-        <header id="app-header" class="group-header" role="banner">
-            <h2 id="room-display" class="room-identifier">ROOM: ...</h2>
-            <div class="user-details-box">
-                <span id="display-name" class="name-label"></span> | 
-                <span id="display-id" class="id-label" style="color:#38bdf8;"></span>
+        <header class="group-header" role="banner">
+            <h2 id="room-display">ROOM: ...</h2>
+            <div class="user-info">
+                <span id="display-name"></span> | 
+                <span id="display-id" style="color:#38bdf8;"></span>
             </div>
-            <div class="online-status-bar">
-                ONLINE MEMBERS: <span id="member-count">0</span>
+            <div class="member-stats">
+                ONLINE: <span id="member-count">0</span>
             </div>
         </header>
 
-        <section id="video-grid" class="video-grid-container" aria-label="Media Grid">
-            <div id="local-container" class="video-box-element">
+        <div id="video-grid" class="video-grid" aria-label="Media Grid">
+            <div id="local-container" style="position:relative; flex-shrink:0;">
                 <video id="local-video" autoplay muted playsinline></video>
-                <button id="hangup-btn" class="btn-hangup" onclick="endCall()">HANG UP</button>
+                <button id="hangup-btn" class="btn reject" style="display:none; position:absolute; bottom:0; width:100%; height:25px; font-size:10px; z-index:10;" onclick="endCall()">HANG UP</button>
             </div>
-        </section>
+        </div>
 
         <main id="chat-window" class="chat-feed-area" role="log"></main>
 
-        <div id="request-modal" class="modal-overlay-custom" style="display:none;">
-            <div class="modal-content-wrapper">
-                <p id="modal-text" class="modal-message"></p>
-                <div class="modal-actions-grid">
-                    <button class="btn-action-accept" id="accept-btn">ACCEPT</button>
-                    <button class="btn-action-reject" id="reject-btn">REJECT</button>
+        <div id="request-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-content">
+                <p id="modal-text" style="color:white; font-weight:bold;"></p>
+                <div class="modal-buttons">
+                    <button class="btn send" id="accept-btn">ACCEPT</button>
+                    <button class="btn reject" id="reject-btn">REJECT</button>
                 </div>
             </div>
         </div>
 
-        <footer class="footer-input-area" role="contentinfo">
-            <div class="input-container-row">
-                <input type="text" id="user-msg" placeholder="Type a secure message..." autocomplete="off">
-                <button class="btn-send-main" onclick="sendMessage()">SEND</button>
-            </div>
-            <div class="control-grid-row">
-                <button class="btn-ctrl" id="private-btn" onclick="startPrivateRequest()">🔒</button>
-                <button class="btn-ctrl" id="mic-btn" onclick="toggleMic()">🎙️</button>
-                <button class="btn-ctrl" id="cam-btn" onclick="toggleCam()">📷</button>
-                <button class="btn-ctrl" onclick="document.getElementById('file-input').click()">📁</button>
-                <button class="btn-ctrl" id="call-btn" onclick="startCallRequest()">📞</button>
-                <button class="btn-ctrl-reject" onclick="location.reload()">EXIT</button>
+        <footer class="input-area" role="contentinfo">
+            <div class="input-container">
+                <input type="text" id="user-msg" placeholder="Type message..." autocomplete="off">
+                <div class="button-row">
+                    <button class="btn send" onclick="sendMessage()">SEND</button>
+                    <button class="btn" id="private-btn" onclick="startPrivateRequest()">🔒</button>
+                    <button class="btn" id="mic-btn" onclick="toggleMic()">🎙️</button>
+                    <button class="btn" id="cam-btn" onclick="toggleCam()">📷</button>
+                    <button class="btn" onclick="document.getElementById('file-input').click()">📁</button>
+                    <button class="btn" id="call-btn" onclick="startCallRequest()">📞</button>
+                    <button class="btn reject" onclick="location.reload()">EXIT</button>
+                </div>
             </div>
         </footer>
     </div>
@@ -62,5 +71,6 @@
     
     <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
     <script src="{{ url_for('static', filename='script.js') }}"></script>
-</body>
+    
+    </body>
 </html>
