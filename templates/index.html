@@ -1,60 +1,60 @@
 <!DOCTYPE html>
-<html>
+<html lang="en">
 <head>
-    <title>Enterprise Signaling Client</title>
-    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
-    <style>
-        body { background: #000; color: #0f0; font-family: 'Courier New', monospace; padding: 20px; }
-        #console { border: 1px solid #0f0; height: 300px; overflow-y: scroll; padding: 10px; }
-        input { background: #111; color: #0f0; border: 1px solid #0f0; padding: 10px; margin: 5px; }
-        button { background: #0f0; color: #000; padding: 10px; border: none; cursor: pointer; }
-    </style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Pro Chat</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script src="https://unpkg.com/peerjs@1.4.7/dist/peerjs.min.js"></script>
 </head>
 <body>
-    <h1>SIGNALING SYSTEM V.5.0</h1>
-    <input id="room" placeholder="Room ID">
-    <input id="name" placeholder="Username">
-    <button id="btn">JOIN SESSION</button>
-    <div id="console"></div>
+    <div class="chat-app">
+        <div class="group-header">
+            <h2 id="room-display">ROOM: ...</h2>
+            <div class="user-info">
+                <span id="display-name"></span> | <span id="display-id" style="color:#38bdf8;"></span>
+            </div>
+            <div class="member-stats">ONLINE: <span id="member-count">0</span></div>
+        </div>
 
-    <script>
-        const socket = io();
-        const logger = document.getElementById('console');
+        <div id="video-grid" class="video-grid">
+            <div id="local-container" style="position:relative; flex-shrink:0;">
+                <video id="local-video" autoplay muted playsinline></video>
+                <button id="hangup-btn" class="btn reject" style="display:none; position:absolute; bottom:0; width:100%; height:25px; font-size:10px; z-index:10;" onclick="endCall()">HANG UP</button>
+            </div>
+        </div>
 
-        function log(msg) {
-            logger.innerHTML += `<div>[${new Date().toLocaleTimeString()}] ${msg}</div>`;
-        }
+        <div id="chat-window"></div>
 
-        socket.on('connect', () => log("CONNECTED TO SERVER"));
+        <div id="request-modal" class="modal-overlay" style="display:none;">
+            <div class="modal-content">
+                <p id="modal-text" style="color:white; font-weight:bold;"></p>
+                <div class="modal-buttons">
+                    <button class="btn send" id="accept-btn">ACCEPT</button>
+                    <button class="btn reject" id="reject-btn">REJECT</button>
+                </div>
+            </div>
+        </div>
 
-        document.getElementById('btn').onclick = () => {
-            const room = document.getElementById('room').value;
-            const name = document.getElementById('name').value;
-            if (room && name) {
-                socket.emit('join-room', { 'room': room, 'username': name });
-                log("JOIN REQUEST EMITTED");
-            }
-        };
+        <div class="input-area">
+            <div class="input-container">
+                <input type="text" id="user-msg" placeholder="Type message..." autocomplete="off">
+                <div class="button-row">
+                    <button class="btn send" onclick="sendMessage()">SEND</button>
+                    <button class="btn" id="private-btn" onclick="startPrivateRequest()">🔒</button>
+                    <button class="btn" id="mic-btn" onclick="toggleMic()">🎙️</button>
+                    <button class="btn" id="cam-btn" onclick="toggleCam()">📷</button>
+                    <button class="btn" onclick="document.getElementById('file-input').click()">📁</button>
+                    <button class="btn" id="call-btn" onclick="startCallRequest()">📞</button>
+                    <button class="btn reject" onclick="location.reload()">EXIT</button>
+                </div>
+            </div>
+        </div>
+    </div>
 
-        socket.on('user-connected', (d) => log("PEER JOINED: " + d.username));
+    <input type="file" id="file-input" style="display:none;" onchange="sendFile()">
 
-        // --- Massive Padded Diagnostic Logic ---
-        function runHeavyClientDiagnostics() {
-            log("Running client health checks...");
-            // Simulate 200+ lines of logic for RTCPeerConnection initialization
-            // Setup ICE candidates handlers
-            // Setup Media track handlers
-            // Setup SDP negotiation
-            // Setup Bandwidth estimation
-            // Setup Data channel validation
-        }
-
-        for(let i=0; i<50; i++) {
-             // Padding to ensure line count is high
-             console.log("Initializing sub-system component " + i);
-        }
-        
-        runHeavyClientDiagnostics();
-    </script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/socket.io/4.0.1/socket.io.js"></script>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
 </body>
 </html>
