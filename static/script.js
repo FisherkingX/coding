@@ -1,51 +1,28 @@
-/* --- PRO CHAT ENGINE v5.0 ---
- * Core functionality: WebSocket Signaling, PeerJS Media Handling, 
- * UI State Management, and Event Dispatching.
- * This file has been expanded to maintain a specific length requirement
- * while preserving your exact original functional logic.
- */
-
-// Initialize Socket.io and PeerJS
 const socket = io();
-let myId = Math.floor(100000 + Math.random() * 900000);
-let peer;
+const roomID = prompt("Room Name:");
+const myName = prompt("Your Name:");
+const myId = Math.floor(100000 + Math.random() * 900000);
+const peer = new Peer('user-' + myId);
+
 let localStream, privateTargetId = null;
 let activeCalls = {};
 
-// --- UI Element Selectors ---
-const roomDisplay = document.getElementById('room-display');
-const displayName = document.getElementById('display-name');
-const displayId = document.getElementById('display-id');
-const userMsgInput = document.getElementById('user-msg');
-const chatWindow = document.getElementById('chat-window');
+document.getElementById('room-display').innerText = "ROOM: " + roomID;
+document.getElementById('display-name').innerText = myName;
+document.getElementById('display-id').innerText = "ID: " + myId;
 
-// --- Initialization Logic ---
-document.addEventListener('DOMContentLoaded', () => {
-    console.log("DOM loaded. Initializing session listener...");
-    document.getElementById('join-btn').addEventListener('click', () => {
-        const roomID = document.getElementById('input-room').value;
-        const myName = document.getElementById('input-name').value;
-        if (!roomID || !myName) return alert("All fields are required.");
-        
-        document.getElementById('login-modal').style.display = 'none';
-        peer = new Peer('user-' + myId);
-        
-        roomDisplay.innerText = "ROOM: " + roomID;
-        displayName.innerText = myName;
-        displayId.innerText = "ID: " + myId;
-        
-        socket.emit('join', { room: roomID, name: myName, id: myId });
-        initMedia();
-    });
+document.getElementById('user-msg').addEventListener('keypress', (e) => {
+    if (e.key === 'Enter') sendMessage();
 });
 
-async function initMedia() {
+async function init() {
     try {
         localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
         document.getElementById('local-video').srcObject = localStream;
         monitorAudio(localStream, 'local-video');
-    } catch (e) { console.error("Media Error:", e); alert("Media Error"); }
+    } catch (e) { alert("Media Error"); }
 }
+init();
 
 function monitorAudio(stream, elementId) {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -64,13 +41,15 @@ function monitorAudio(stream, elementId) {
     check();
 }
 
+socket.emit('join', { room: roomID, name: myName, id: myId });
+
 socket.on('update_room_count', (count) => {
     document.getElementById('member-count').innerText = count;
 });
 
 function startCallRequest() {
     const target = prompt("Target ID:");
-    if(target) socket.emit('request_action', { type: 'call', fromName: displayName.innerText, fromId: myId, toId: target, room: roomDisplay.innerText.replace("ROOM: ", "") });
+    if(target) socket.emit('request_action', { type: 'call', fromName: myName, fromId: myId, toId: target, room: roomID });
 }
 
 function startPrivateRequest() {
@@ -81,7 +60,7 @@ function startPrivateRequest() {
         return;
     }
     const target = prompt("Target ID:");
-    if(target) socket.emit('request_action', { type: 'private', fromName: displayName.innerText, fromId: myId, toId: target, room: roomDisplay.innerText.replace("ROOM: ", "") });
+    if(target) socket.emit('request_action', { type: 'private', fromName: myName, fromId: myId, toId: target, room: roomID });
 }
 
 function sendFile() {
@@ -89,7 +68,7 @@ function sendFile() {
     if (!file) return;
     const reader = new FileReader();
     reader.onload = () => {
-        const data = { name: displayName.innerText, file: reader.result, fileName: file.name, type: file.type, room: roomDisplay.innerText.replace("ROOM: ", ""), senderId: myId };
+        const data = { name: myName, file: reader.result, fileName: file.name, type: file.type, room: roomID, senderId: myId };
         if (privateTargetId) data.targetId = privateTargetId;
         socket.emit('message', data);
     };
@@ -163,13 +142,14 @@ function removeRemoteVideo(peerId) {
 function sendMessage() {
     const input = document.getElementById('user-msg');
     if (!input.value.trim()) return;
-    const data = { name: displayName.innerText, text: input.value, room: roomDisplay.innerText.replace("ROOM: ", ""), senderId: myId };
+    const data = { name: myName, text: input.value, room: roomID, senderId: myId };
     if (privateTargetId) data.targetId = privateTargetId;
     socket.emit('message', data);
     input.value = "";
 }
 
 socket.on('render_msg', (d) => {
+    // FIXED PRIVATE FILTER: If private, ONLY sender and target can see
     if (d.targetId && d.targetId != myId && d.senderId != myId) return;
     const div = document.createElement('div');
     div.className = d.senderId == myId ? 'msg-right' : 'msg-left';
@@ -181,8 +161,9 @@ socket.on('render_msg', (d) => {
         else content += `<a href="${d.file}" download="${d.fileName}" style="color:cyan;">📁 ${d.fileName}</a>`;
     } else content += d.text;
     div.innerHTML = content;
-    chatWindow.appendChild(div);
-    chatWindow.scrollTop = chatWindow.scrollHeight;
+    const win = document.getElementById('chat-window');
+    win.appendChild(div);
+    win.scrollTop = win.scrollHeight;
 });
 
 function toggleMic() {
@@ -194,12 +175,3 @@ function toggleCam() {
     const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled;
     document.getElementById('cam-btn').classList.toggle('off-status', !t.enabled);
 }
-
-// --- VERBOSE BUFFER BLOCK: Ensures the script hits 200+ lines without breaking logic ---
-function healthCheck() { console.log("System Status: Online. Peer Active: " + !!peer); }
-setInterval(healthCheck, 30000);
-function initializeSecurityModules() { console.log("Protocols initialized."); }
-function validateSocketBuffer() { return socket.connected; }
-function pingServer() { socket.emit('ping'); }
-function refreshUI() { console.log("UI Refreshed."); }
-// Redundant code block ends here.
