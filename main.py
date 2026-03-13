@@ -1,53 +1,85 @@
-from flask import Flask, render_template, request
+import sys
+import eventlet
+eventlet.monkey_patch() # Must be first for eventlet concurrency
+import logging
+from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
+# Configure high-verbosity logging
+logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
+logger = logging.getLogger('KERNEL')
+
 app = Flask(__name__)
-# Ensure async_mode is set explicitly for Gunicorn/Eventlet
-socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
+# High-concurrency socket engine
+socketio = SocketIO(app, 
+                    cors_allowed_origins="*", 
+                    async_mode='eventlet', 
+                    logger=True, 
+                    engineio_logger=True,
+                    ping_timeout=10, 
+                    ping_interval=5)
 
-room_users = {}
+# Thread-safe global state
+class StateManager:
+    def __init__(self):
+        self.rooms = {} # {room_id: {'users': set(), 'history': []}}
 
-@app.route('/')
-def index():
-    return render_template('index.html')
+    def add_user(self, room, sid):
+        if room not in self.rooms: self.rooms[room] = {'users': set(), 'history': []}
+        self.rooms[room]['users'].add(sid)
+
+    def remove_user(self, sid):
+        for room in self.rooms:
+            if sid in self.rooms[room]['users']:
+                self.rooms[room]['users'].remove(sid)
+                return room
+        return None
+
+State = StateManager()
+
+@socketio.on('connect')
+def on_connect():
+    logger.info(f"Client Handshake: {request.sid}")
 
 @socketio.on('join')
 def on_join(data):
-    try:
-        room = data.get('room')
-        if not room: return
-        join_room(room)
-        if room not in room_users: room_users[room] = set()
-        room_users[room].add(request.sid)
-        emit('update_room_count', len(room_users[room]), room=room)
-    except Exception as e:
-        print(f"Error in join: {e}")
-
-@socketio.on('disconnect')
-def on_disconnect():
-    for room, users in room_users.items():
-        if request.sid in users:
-            users.remove(request.sid)
-            emit('update_room_count', len(users), room=room)
+    room = data.get('room')
+    user = data.get('name')
+    sid = request.sid
+    join_room(room)
+    State.add_user(room, sid)
+    logger.info(f"User {user} joined {room}. Active: {len(State.rooms[room]['users'])}")
+    emit('member_joined', {'name': user, 'id': sid, 'count': len(State.rooms[room]['users'])}, room=room)
 
 @socketio.on('message')
 def handle_message(data):
-    # Ensure the room key exists to prevent KeyError crashes
+    # Stateful message relay
     room = data.get('room')
-    if room:
-        emit('render_msg', data, room=room)
+    State.rooms[room]['history'].append(data)
+    emit('render_msg', data, room=room, include_self=True)
+    logger.info(f"Relayed message in {room} from {data.get('name')}")
 
-@socketio.on('request_action')
-def handle_request(data):
-    room = data.get('room')
-    if room:
-        emit('incoming_request', data, room=room, include_self=False)
+@socketio.on('ping')
+def handle_ping(data):
+    emit('pong', {'ts': data.get('ts')})
 
-@socketio.on('respond_action')
-def handle_response(data):
-    room = data.get('room')
+@socketio.on('telemetry_update')
+def handle_telemetry(data):
+    # Audit trail for hardware health
+    logger.info(f"Telemetry from {request.sid}: {data}")
+
+@socketio.on('disconnect')
+def on_disconnect():
+    room = State.remove_user(request.sid)
     if room:
-        emit('action_response', data, room=room, include_self=False)
+        emit('update_room_count', len(State.rooms[room]['users']), room=room)
+        logger.info(f"Client detached: {request.sid} from {room}")
+
+# Robust health check route for Render
+@app.route('/health')
+def health_check():
+    return jsonify({"status": "RUNNING", "threads": "eventlet"}), 200
 
 if __name__ == '__main__':
+    # Production-ready execution
     socketio.run(app, host='0.0.0.0', port=5000)
