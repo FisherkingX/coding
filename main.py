@@ -2,7 +2,8 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+# Crucial: Ensure eventlet or gevent is installed in requirements.txt
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet')
 
 # Dictionary to track actual users in rooms
 room_users = {}
@@ -38,5 +39,6 @@ def handle_request(data):
 def handle_response(data):
     emit('action_response', data, room=data['room'], include_self=False)
 
+# Add this block to allow Gunicorn to find the application
 if __name__ == '__main__':
-    socketio.run(app, debug=True, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000)
