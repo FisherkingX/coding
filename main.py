@@ -4,6 +4,10 @@ eventlet.monkey_patch() # Must be first for eventlet concurrency
 import logging
 from flask import Flask, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
+import gunicorn
+import et_xmlfile
+import openpyxl
+
 
 # Configure high-verbosity logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
