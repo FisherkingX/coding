@@ -5,21 +5,19 @@ let localStream, privateTargetId = null;
 let activeCalls = {};
 let roomID, myName;
 
-// ✅ FIX #2: init() now called inside joinSession() AFTER user interaction
 function joinSession() {
     roomID = document.getElementById('room-input').value;
     myName = document.getElementById('name-input').value;
-    if (!roomID || !myName) return alert("Please fill both fields");
+    if(!roomID || !myName) return alert("Please fill both fields");
     document.getElementById('session-modal').style.display = 'none';
     document.getElementById('room-display').innerText = "ROOM: " + roomID;
     document.getElementById('display-name').innerText = myName;
     document.getElementById('display-id').innerText = "ID: " + myId;
     socket.emit('join', { room: roomID, name: myName, id: myId });
-    init(); // ✅ Start camera AFTER user has interacted with the page
 }
 
 function startPrivateRequest() {
-    if (privateTargetId) {
+    if(privateTargetId) {
         privateTargetId = null;
         document.getElementById('private-btn').classList.remove('active-mode');
         alert("Private Mode Off");
@@ -30,7 +28,7 @@ function startPrivateRequest() {
 
 function confirmPrivate() {
     const target = document.getElementById('target-id-input').value;
-    if (target) {
+    if(target) {
         socket.emit('request_action', { type: 'private', fromName: myName, fromId: myId, toId: target, room: roomID });
         document.getElementById('private-modal').style.display = 'none';
         document.getElementById('target-id-input').value = "";
@@ -43,7 +41,7 @@ function startCallRequest() {
 
 function confirmCall() {
     const target = document.getElementById('call-id-input').value;
-    if (target) {
+    if(target) {
         socket.emit('request_action', { type: 'call', fromName: myName, fromId: myId, toId: target, room: roomID });
         document.getElementById('call-modal').style.display = 'none';
         document.getElementById('call-id-input').value = "";
@@ -52,24 +50,12 @@ function confirmCall() {
 
 async function init() {
     try {
-        localStream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true });
+        localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
         document.getElementById('local-video').srcObject = localStream;
         monitorAudio(localStream, 'local-video');
-    } catch (e) {
-        // ✅ FIX #4: Specific error messages
-        if (e.name === 'NotAllowedError') {
-            alert("Camera/mic permission denied. Please allow access in your browser settings.");
-        } else if (e.name === 'NotFoundError') {
-            alert("No camera or microphone found on this device.");
-        } else if (e.name === 'NotReadableError') {
-            alert("Camera is in use by another application.");
-        } else {
-            alert("Media Error: " + e.message);
-        }
-    }
+    } catch (e) { alert("Media Error"); }
 }
-
-// ✅ Removed the bare init() call here — it's now called inside joinSession()
+init();
 
 function monitorAudio(stream, elementId) {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
@@ -101,13 +87,13 @@ function sendFile() {
 }
 
 socket.on('incoming_request', (data) => {
-    if (data.toId != myId) return;
+    if(data.toId != myId) return;
     const modal = document.getElementById('request-modal');
     document.getElementById('modal-text').innerText = `${data.fromName} (ID: ${data.fromId}) wants a ${data.type}!`;
     modal.style.display = 'flex';
     document.getElementById('accept-btn').onclick = () => {
         modal.style.display = 'none';
-        if (data.type === 'private') {
+        if(data.type === 'private') {
             privateTargetId = data.fromId;
             document.getElementById('private-btn').classList.add('active-mode');
         }
@@ -120,10 +106,10 @@ socket.on('incoming_request', (data) => {
 });
 
 socket.on('action_response', (data) => {
-    if (data.fromId != myId) return;
-    if (data.status === 'accept') {
-        if (data.type === 'call') setupCall(peer.call('user-' + data.toId, localStream));
-        if (data.type === 'private') {
+    if(data.fromId != myId) return; 
+    if(data.status === 'accept') {
+        if(data.type === 'call') setupCall(peer.call('user-' + data.toId, localStream));
+        if(data.type === 'private') {
             privateTargetId = data.toId;
             document.getElementById('private-btn').classList.add('active-mode');
         }
@@ -140,7 +126,7 @@ function setupCall(call) {
     document.getElementById('hangup-btn').style.display = 'block';
     call.on('stream', (s) => {
         let v = document.getElementById('remote-' + call.peer);
-        if (!v) {
+        if(!v) {
             v = document.createElement('video');
             v.id = 'remote-' + call.peer;
             v.autoplay = true; v.playsinline = true;
@@ -190,20 +176,13 @@ socket.on('render_msg', (d) => {
     win.scrollTop = win.scrollHeight;
 });
 
-// ✅ FIX #3: Null-guards so these don't crash if camera failed
 function toggleMic() {
-    if (!localStream) return alert("Microphone not available.");
-    const t = localStream.getAudioTracks()[0];
-    if (!t) return;
-    t.enabled = !t.enabled;
+    const t = localStream.getAudioTracks()[0]; t.enabled = !t.enabled;
     document.getElementById('mic-btn').classList.toggle('off-status', !t.enabled);
 }
 
 function toggleCam() {
-    if (!localStream) return alert("Camera not available.");
-    const t = localStream.getVideoTracks()[0];
-    if (!t) return;
-    t.enabled = !t.enabled;
+    const t = localStream.getVideoTracks()[0]; t.enabled = !t.enabled;
     document.getElementById('cam-btn').classList.toggle('off-status', !t.enabled);
 }
 
