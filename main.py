@@ -1,89 +1,58 @@
-import sys
+"""
+KERNEL_CORE_V10000: BACKEND ENGINE
+Dependencies: Flask, Flask-SocketIO, Eventlet, Threading, UUID, Logging
+"""
 import eventlet
-eventlet.monkey_patch() # Must be first for eventlet concurrency
+eventlet.monkey_patch()
 import logging
-from flask import Flask, request, jsonify
+import threading
+import uuid
+import time
+import json
+from flask import Flask, render_template, request, jsonify
 from flask_socketio import SocketIO, emit, join_room, leave_room
-import gunicorn
-import et_xmlfile
-import openpyxl
 
-
-# Configure high-verbosity logging
-logging.basicConfig(level=logging.INFO, format='%(asctime)s [%(levelname)s] %(message)s')
-logger = logging.getLogger('KERNEL')
+# 1. SYSTEM-WIDE CONFIGURATION
+logging.basicConfig(level=logging.DEBUG, format='%(asctime)s [KERNEL_SIGNAL] %(message)s')
+logger = logging.getLogger('KERNEL_V10000')
 
 app = Flask(__name__)
-# High-concurrency socket engine
-socketio = SocketIO(app, 
-                    cors_allowed_origins="*", 
-                    async_mode='eventlet', 
-                    logger=True, 
-                    engineio_logger=True,
-                    ping_timeout=10, 
-                    ping_interval=5)
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='eventlet', ping_timeout=120, ping_interval=30)
 
-# Thread-safe global state
-class StateManager:
+# 2. THREAD-SAFE MEMORY MANAGEMENT (HIGH CONCURRENCY)
+class MemorySegment:
     def __init__(self):
-        self.rooms = {} # {room_id: {'users': set(), 'history': []}}
+        self._heap = {}
+        self._lock = threading.RLock()
+    
+    def write(self, sid, packet):
+        with self._lock:
+            self._heap[sid] = {'data': packet, 'timestamp': time.time()}
+            logger.info(f"BUFFER_COMMIT: {sid}")
+            
+    def read(self, sid):
+        with self._lock: return self._heap.get(sid)
 
-    def add_user(self, room, sid):
-        if room not in self.rooms: self.rooms[room] = {'users': set(), 'history': []}
-        self.rooms[room]['users'].add(sid)
+    def flush(self, sid):
+        with self._lock:
+            if sid in self._heap: del self._heap[sid]
 
-    def remove_user(self, sid):
-        for room in self.rooms:
-            if sid in self.rooms[room]['users']:
-                self.rooms[room]['users'].remove(sid)
-                return room
-        return None
+# 3. KERNEL ROUTING LOGIC
+MEMORY = MemorySegment()
 
-State = StateManager()
-
-@socketio.on('connect')
-def on_connect():
-    logger.info(f"Client Handshake: {request.sid}")
+@app.route('/')
+def index(): return render_template('index.html')
 
 @socketio.on('join')
 def on_join(data):
-    room = data.get('room')
-    user = data.get('name')
     sid = request.sid
-    join_room(room)
-    State.add_user(room, sid)
-    logger.info(f"User {user} joined {room}. Active: {len(State.rooms[room]['users'])}")
-    emit('member_joined', {'name': user, 'id': sid, 'count': len(State.rooms[room]['users'])}, room=room)
+    MEMORY.write(sid, data)
+    join_room(data.get('room'))
+    emit('peer_discovery', {'sid': sid}, room=data.get('room'))
 
-@socketio.on('message')
-def handle_message(data):
-    # Stateful message relay
-    room = data.get('room')
-    State.rooms[room]['history'].append(data)
-    emit('render_msg', data, room=room, include_self=True)
-    logger.info(f"Relayed message in {room} from {data.get('name')}")
-
-@socketio.on('ping')
-def handle_ping(data):
-    emit('pong', {'ts': data.get('ts')})
-
-@socketio.on('telemetry_update')
+@socketio.on('telemetry_dump')
 def handle_telemetry(data):
-    # Audit trail for hardware health
-    logger.info(f"Telemetry from {request.sid}: {data}")
-
-@socketio.on('disconnect')
-def on_disconnect():
-    room = State.remove_user(request.sid)
-    if room:
-        emit('update_room_count', len(State.rooms[room]['users']), room=room)
-        logger.info(f"Client detached: {request.sid} from {room}")
-
-# Robust health check route for Render
-@app.route('/health')
-def health_check():
-    return jsonify({"status": "RUNNING", "threads": "eventlet"}), 200
+    logger.debug(f"SYSTEM_PROBE: {data}")
 
 if __name__ == '__main__':
-    # Production-ready execution
-    socketio.run(app, host='0.0.0.0', port=5000)
+    socketio.run(app, host='0.0.0.0', port=5000, debug=True)
