@@ -1,8 +1,7 @@
 const socket = io();
 const myId = Math.floor(100000 + Math.random() * 900000);
 const peer = new Peer('user-' + myId);
-let localStream = null;
-let privateTargetId = null;
+let localStream, privateTargetId = null;
 let activeCalls = {};
 let roomID, myName;
 
@@ -50,20 +49,13 @@ function confirmCall() {
 }
 
 async function init() {
-    if (!navigator.mediaDevices || !navigator.mediaDevices.getUserMedia) {
-        alert("Camera blocked: Check Android permissions and WebView bridge.");
-        return;
-    }
     try {
         localStream = await navigator.mediaDevices.getUserMedia({video: true, audio: true});
         document.getElementById('local-video').srcObject = localStream;
         monitorAudio(localStream, 'local-video');
-    } catch (e) { 
-        alert("Media Error: " + e.message); 
-    }
+    } catch (e) { alert("Media Error"); }
 }
-
-window.addEventListener('load', init);
+init();
 
 function monitorAudio(stream, elementId) {
     const audioContext = new (window.AudioContext || window.webkitAudioContext)();
