@@ -1,9 +1,14 @@
-const socket = io();
+const socket = io({ transports: ['websocket', 'polling'], reconnection: true, reconnectionAttempts: 5, reconnectionDelay: 1000 });
 const myId = Math.floor(100000 + Math.random() * 900000);
 const peer = new Peer('user-' + myId);
 let localStream, privateTargetId = null;
 let activeCalls = {};
 let roomID, myName;
+
+// Log connection status
+socket.on('connect', () => { console.log('Connected:', socket.id); });
+socket.on('disconnect', () => { console.log('Disconnected'); });
+socket.on('connect_error', (err) => { console.error('Connection error:', err); });
 
 function joinSession() {
     roomID = document.getElementById('room-input').value;
