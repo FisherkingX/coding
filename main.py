@@ -17,26 +17,29 @@ def on_join(data):
     join_room(room)
     if room not in room_users: room_users[room] = set()
     room_users[room].add(request.sid)
-    emit('update_room_count', len(room_users[room]), room=room)
+    emit('update_room_count', len(room_users[room]), room=room, broadcast=True)
 
 @socketio.on('disconnect')
 def on_disconnect():
-    for room, users in room_users.items():
+    for room, users in list(room_users.items()):
         if request.sid in users:
             users.remove(request.sid)
+            leave_room(room)
             emit('update_room_count', len(users), room=room)
+            if len(users) == 0:
+                del room_users[room]
 
 @socketio.on('message')
 def handle_message(data):
-    emit('render_msg', data, room=data['room'])
+    emit('render_msg', data, room=data['room'], broadcast=True)
 
 @socketio.on('request_action')
 def handle_request(data):
-    emit('incoming_request', data, room=data['room'], include_self=False)
+    emit('incoming_request', data, room=data['room'], broadcast=True, include_self=False)
 
 @socketio.on('respond_action')
 def handle_response(data):
-    emit('action_response', data, room=data['room'], include_self=False)
+    emit('action_response', data, room=data['room'], broadcast=True, include_self=False)
 
 if __name__ == '__main__':
     socketio.run(app, debug=True, host='0.0.0.0', port=5000)
