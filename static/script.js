@@ -186,6 +186,25 @@ function toggleCam() {
     document.getElementById('cam-btn').classList.toggle('off-status', !t.enabled);
 }
 
+let screenStream = null;
+async function toggleScreenShare() {
+    const btn = document.getElementById('screen-btn');
+    if (screenStream) {
+        screenStream.getTracks().forEach(track => track.stop());
+        screenStream = null;
+        btn.classList.remove('active-mode');
+    } else {
+        try {
+            screenStream = await navigator.mediaDevices.getDisplayMedia({video: true, audio: false});
+            btn.classList.add('active-mode');
+            screenStream.getVideoTracks()[0].onended = () => {
+                screenStream = null;
+                btn.classList.remove('active-mode');
+            };
+        } catch (e) { console.log("Screen share cancelled"); }
+    }
+}
+
 document.getElementById('user-msg').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
