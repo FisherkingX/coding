@@ -11,14 +11,24 @@ socket.on('disconnect', () => { console.log('Disconnected'); });
 socket.on('connect_error', (err) => { console.error('Connection error:', err); });
 
 function joinSession() {
-    roomID = document.getElementById('room-input').value;
-    myName = document.getElementById('name-input').value;
+    roomID = document.getElementById('room-input').value.trim();
+    myName = document.getElementById('name-input').value.trim();
     if(!roomID || !myName) return alert("Please fill both fields");
     document.getElementById('session-modal').style.display = 'none';
     document.getElementById('room-display').innerText = "ROOM: " + roomID;
     document.getElementById('display-name').innerText = myName;
     document.getElementById('display-id').innerText = "ID: " + myId;
-    socket.emit('join', { room: roomID, name: myName, id: myId });
+    console.log("Joining room:", roomID, "with ID:", myId);
+    
+    // Wait for socket connection before joining
+    if (!socket.connected) {
+        console.log("Waiting for socket connection...");
+        socket.on('connect', () => {
+            socket.emit('join', { room: roomID, name: myName, id: myId });
+        }, { once: true });
+    } else {
+        socket.emit('join', { room: roomID, name: myName, id: myId });
+    }
 }
 
 function startPrivateRequest() {
@@ -158,13 +168,16 @@ function removeRemoteVideo(peerId) {
 function sendMessage() {
     const input = document.getElementById('user-msg');
     if (!input.value.trim()) return;
+    if (!socket.connected) { alert("Not connected to server"); return; }
     const data = { name: myName, text: input.value, room: roomID, senderId: myId };
     if (privateTargetId) data.targetId = privateTargetId;
+    console.log("Sending message:", data);
     socket.emit('message', data);
     input.value = "";
 }
 
 socket.on('render_msg', (d) => {
+    console.log("Received message:", d);
     if (d.targetId && d.targetId != myId && d.senderId != myId) return;
     const div = document.createElement('div');
     div.className = d.senderId == myId ? 'msg-right' : 'msg-left';
@@ -214,6 +227,8 @@ document.getElementById('user-msg').addEventListener('keypress', (e) => {
     if (e.key === 'Enter') sendMessage();
 });
 
-socket.on('update_room_count', (count) => {
+socket.on('update_room_count', (data) => {
+    const count = typeof data === 'object' ? data.count : data;
+    console.log("Room count updated:", count);
     document.getElementById('member-count').innerText = count;
 });
