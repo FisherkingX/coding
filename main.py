@@ -17,6 +17,7 @@ def on_join(data):
     join_room(room)
     if room not in room_users: room_users[room] = set()
     room_users[room].add(request.sid)
+    print(f"[JOIN] Room: {room}, Users: {len(room_users[room])}")
     emit('update_room_count', len(room_users[room]), room=room, broadcast=True)
 
 @socketio.on('disconnect')
@@ -25,12 +26,14 @@ def on_disconnect():
         if request.sid in users:
             users.remove(request.sid)
             leave_room(room)
-            emit('update_room_count', len(users), room=room)
+            print(f"[DISCONNECT] Room: {room}, Users remaining: {len(users)}")
+            emit('update_room_count', len(users), room=room, broadcast=True)
             if len(users) == 0:
                 del room_users[room]
 
 @socketio.on('message')
 def handle_message(data):
+    print(f"[MESSAGE] Room: {data['room']}, From: {data['name']}, Text: {data['text']}")
     emit('render_msg', data, room=data['room'], broadcast=True)
 
 @socketio.on('request_action')
