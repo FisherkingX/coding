@@ -2,7 +2,7 @@ from flask import Flask, render_template, request
 from flask_socketio import SocketIO, emit, join_room, leave_room
 
 app = Flask(__name__)
-socketio = SocketIO(app, cors_allowed_origins="*")
+socketio = SocketIO(app, cors_allowed_origins="*", async_mode='threading')
 
 # Dictionary to track actual users in rooms
 room_users = {}
@@ -18,7 +18,8 @@ def on_join(data):
     if room not in room_users: room_users[room] = set()
     room_users[room].add(request.sid)
     print(f"[JOIN] Room: {room}, Users: {len(room_users[room])}")
-    emit('update_room_count', len(room_users[room]), room=room, broadcast=True)
+    # Send to everyone in the room
+    emit('update_room_count', {'count': len(room_users[room])}, room=room, broadcast=True)
 
 @socketio.on('disconnect')
 def on_disconnect():
@@ -27,7 +28,7 @@ def on_disconnect():
             users.remove(request.sid)
             leave_room(room)
             print(f"[DISCONNECT] Room: {room}, Users remaining: {len(users)}")
-            emit('update_room_count', len(users), room=room, broadcast=True)
+            emit('update_room_count', {'count': len(users)}, room=room, broadcast=True)
             if len(users) == 0:
                 del room_users[room]
 
